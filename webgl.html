@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Viewer</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<canvas id="glCanvas"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+<script>
+    const canvas = document.getElementById("glCanvas");
+    const gl = canvas.getContext("webgl");
+
+    if (!gl) {
+        console.error("WebGL is not supported by your browser");
+    }
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // --- Vertex Shader ---
+    const vertexShaderSource = `
+        attribute vec3 coordinates;
+        attribute vec3 color;
+        varying vec3 vColor;
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        
+        void main(void) {
+            gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(coordinates, 1.0);
+            gl_PointSize = 5.0;  // Size of the point
+            vColor = color;
+        }
+    `;
+
+    // --- Fragment Shader ---
+    const fragmentShaderSource = `
+        precision mediump float;
+        varying vec3 vColor;
+        
+        void main(void) {
+            gl_FragColor = vec4(vColor, 1.0);
+        }
+    `;
+
+    // Compile Shader
+    function compileShader(source, type) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error('An error occurred compiling the shaders: ', gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+
+    // Creating and linking the program
+    const vertexShader = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
+    const fragmentShader = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
+
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.error('Unable to initialize the shader program: ', gl.getProgramInfoLog(shaderProgram));
+    }
+
+    gl.useProgram(shaderProgram);
+
+    // Galaxy Data
+    const galaxyData = [
+        // x, y, z, r, g, b
+        0.0,  0.0, -5.0, 1.0, 0.0, 0.0,
+        1.0,  1.0, -5.0, 0.0, 1.0, 0.0,
+        -1.0, -1.0, -5.0, 0.0, 0.0, 1.0,
+        // Add more galaxies here
+    ];
+
+    const galaxyBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, galaxyBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(galaxyData), gl.STATIC_DRAW);
+
+    const coord = gl.getAttribLocation(shaderProgram, "coordinates");
+    gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 6 * Float32Array.BYTES_PER_ELEMENT, 0);
+    gl.enableVertexAttribArray(coord);
+
+    const color = gl.getAttribLocation(shaderProgram, "color");
+    gl.vertexAttribPointer(color, 3, gl.FLOAT, false, 6 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
+    gl.enableVertexAttribArray(color);
+
+    // Projection Matrix
+    const fieldOfView = 45 * Math.PI / 180;   // in radians
+    const aspect = canvas.width / canvas.height;
+    const zNear = 0.1;
+    const zFar = 100.0;
+    const projectionMatrix = mat4.create();
+
+    mat4.perspective(projectionMatrix,
+                     fieldOfView,
+                     aspect,
+                     zNear,
+                     zFar);
+
+    // ModelView Matrix
+    const modelViewMatrix = mat4.create();
+    mat4.translate(modelViewMatrix,     // destination matrix
+                   modelViewMatrix,     // matrix to translate
+                   [0.0, 0.0, -6.0]);  // amount to translate
+
+    // Set uniforms
+    const uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+    const uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+
+    gl.uniformMatrix4fv(uProjectionMatrix, false, projectionMatrix);
+    gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
+
+    function render() {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        
+        gl.drawArrays(gl.POINTS, 0, 3);  // Adjust the third argument based on galaxy count
+
+        requestAnimationFrame(render);
+    }
+
+    render();
+
+</script>
+</body>
+</html>
