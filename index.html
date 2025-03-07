@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Viewer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="loading" class="noselect">Loading galaxies...</div>
+<div id="info" class="noselect">Camera Info</div>
+  <script type="importmap">
+      {
+          "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/",
+          "OrbitControls": "https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js"
+          
+          }
+      }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.0.4/dist/pako.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
