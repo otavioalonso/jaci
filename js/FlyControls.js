@@ -15,8 +15,9 @@ class FlyControls extends Controls {
 
 		super( object, domElement );
 
-		this.movementSpeed = 1.0;
-		this.rollSpeed = 0.005;
+		this.movementSpeed = 100/6*0.7;
+		this.forwardSpeed = 1.0;
+		this.rollSpeed = Math.PI / 6;
 
 		this.dragToLook = false;
 		this.autoForward = false;
@@ -38,31 +39,22 @@ class FlyControls extends Controls {
 		//
 
 		if ( domElement !== null ) {
-
 			this.connect();
-
 		}
-
 	}
 
 	connect() {
-
 		window.addEventListener( 'keydown', this._onKeyDown );
 		window.addEventListener( 'keyup', this._onKeyUp );
-
 	}
 
 	disconnect() {
-
 		window.removeEventListener( 'keydown', this._onKeyDown );
 		window.removeEventListener( 'keyup', this._onKeyUp );
-
 	}
 
 	dispose() {
-
 		this.disconnect();
-
 	}
 
 	update( delta ) {
@@ -71,12 +63,11 @@ class FlyControls extends Controls {
 
 		const object = this.object;
 
-		const moveMult = delta * this.movementSpeed;
 		const rotMult = delta * this.rollSpeed;
 
-		object.translateX( this._moveVector.x * moveMult );
-		object.translateY( this._moveVector.y * moveMult );
-		object.translateZ( this._moveVector.z * moveMult );
+		object.translateX( this._moveVector.x * delta * this.movementSpeed );
+		object.translateY( this._moveVector.y * delta * this.movementSpeed );
+		object.translateZ( this._moveVector.z * delta * this.forwardSpeed );
 
 		_tmpQuaternion.set( this._rotationVector.x * rotMult, this._rotationVector.y * rotMult, this._rotationVector.z * rotMult, 1 ).normalize();
 		object.quaternion.multiply( _tmpQuaternion );
@@ -89,9 +80,7 @@ class FlyControls extends Controls {
 			this.dispatchEvent( _changeEvent );
 			this._lastQuaternion.copy( object.quaternion );
 			this._lastPosition.copy( object.position );
-
 		}
-
 	}
 
 	// private
@@ -102,10 +91,7 @@ class FlyControls extends Controls {
 
 		this._moveVector.x = ( - this._moveState.left + this._moveState.right );
 		this._moveVector.y = ( - this._moveState.down + this._moveState.up );
-		this._moveVector.z = ( - forward + this._moveState.back );
-
-		//console.log( 'move:', [ this._moveVector.x, this._moveVector.y, this._moveVector.z ] );
-
+		this._moveVector.z = ( - forward + this._moveState.back* this.movementSpeed/this.forwardSpeed);
 	}
 
 	_updateRotationVector() {
@@ -113,9 +99,6 @@ class FlyControls extends Controls {
 		this._rotationVector.x = ( - this._moveState.pitchDown + this._moveState.pitchUp );
 		this._rotationVector.y = ( - this._moveState.yawRight + this._moveState.yawLeft );
 		this._rotationVector.z = ( - this._moveState.rollRight + this._moveState.rollLeft );
-
-		//console.log( 'rotate:', [ this._rotationVector.x, this._rotationVector.y, this._rotationVector.z ] );
-
 	}
 
 	_getContainerDimensions() {

@@ -39,7 +39,6 @@ function init() {
   controls = orbitControls;
 
   flyControls = new FlyControls(camera, renderer.domElement);
-  flyControls.rollSpeed = Math.PI / 6;
   flyControls.autoForward = false;
 
   setSpeed(1);
@@ -80,7 +79,8 @@ function toggleControls() {
 
 function setSpeed(speed) {
   if(speed === 0) speed = 10;
-  flyControls.movementSpeed = speed**2 * 100/6*h;
+  flyControls.movementSpeed = speed**2 / 3 * 100/6*h;
+  flyControls.forwardSpeed = speed**2 * 100/6*h;
 }
 
 function showLoading() {
@@ -224,7 +224,7 @@ function animate() {
   // orbitControls.update();
   // moveCamera();
 
-  const speedInfo = isComputer && !orbitControls.enabled ? `Speed [0–9]: ${(flyControls.movementSpeed*60/100/h).toFixed(0)} Mpc/s<br>` : '';
+  const speedInfo = isComputer && !orbitControls.enabled ? `Warp speed [0–9]: ${(flyControls.forwardSpeed*60/100/h).toFixed(0)} Mpc/s<br>` : '';
   const flyMode = isComputer ? `Fly mode [M]: ${!orbitControls.enabled ? 'enabled' : 'disabled'}<br>` : ''
 
   infoElement.innerHTML = `
