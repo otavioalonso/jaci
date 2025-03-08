@@ -2,9 +2,9 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'OrbitControls';
+import { FlyControls } from 'FlyControls';
 
-let moveSpeed = 1/6;
-const rotateSpeed = 0.02;
+const h = 0.7;
 
 const color_code = [
         [1.0, 0.8, 0.5], // BGS
@@ -16,15 +16,16 @@ const color_code = [
 const isComputer = !window.mobileCheck();
 
 let scene, camera, controls, renderer;
+let flyControls, orbitControls;
 let galaxyPoints;
 let infoElement, loadingElement;
-let velocity, rotationVector, keyState, showColors, showPanel;
+let showColors, showPanel;
 
 // Initialize the three.js scene
 function init() {
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 5000);
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100000);
 
   camera.position.z = 500;
 
@@ -33,7 +34,15 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
-  controls = new OrbitControls(camera, renderer.domElement);
+  orbitControls = new OrbitControls(camera, renderer.domElement);
+
+  controls = orbitControls;
+
+  flyControls = new FlyControls(camera, renderer.domElement);
+  flyControls.rollSpeed = Math.PI / 6;
+  flyControls.autoForward = false;
+
+  setSpeed(1);
   
   infoElement = document.getElementById('info');
   loadingElement = document.getElementById('loading');
@@ -45,32 +54,33 @@ function init() {
 
   loadGalaxyData();
 
-  velocity = new THREE.Vector3();
-  rotationVector = new THREE.Vector3();
-
-  keyState = {};
-
   if(!isComputer) infoElement.addEventListener('click', toggleColor);
 
   window.addEventListener('keydown', (event) => {
-      keyState[event.code] = true;
-
       if (event.code === 'KeyC') toggleColor();
       if (event.code === 'KeyP') togglePanel();
+      if (event.code === 'KeyM') toggleControls();
 
       if(/^[0-9]$/i.test(event.key)) {
         setSpeed(parseInt(event.key));
       }
   });
+}
 
-  window.addEventListener('keyup', (event) => {
-      keyState[event.code] = false;
-  });
+function toggleControls() {
+  if (controls === orbitControls) {
+    controls = flyControls;
+    orbitControls.enabled = false;
+  } else {
+    controls = orbitControls;
+    orbitControls.enabled = true;
+    // flyControls.reset();
+  }
 }
 
 function setSpeed(speed) {
   if(speed === 0) speed = 10;
-  moveSpeed = speed**2/6;
+  flyControls.movementSpeed = speed**2 * 100/6*h;
 }
 
 function showLoading() {
@@ -210,46 +220,23 @@ function animate() {
   if (galaxyPoints) {
     galaxyPoints.rotation.x += 0.0002;
   }
-  // controls.update();
-  handleKeyboard();
-  moveCamera();
+  controls.update(0.01);
+  // orbitControls.update();
+  // moveCamera();
 
-  const speedInfo = isComputer ? `Speed [0–9]: ${(moveSpeed*60).toFixed(0)} Mpc/h/s<br>` : '';
+  const speedInfo = isComputer && !orbitControls.enabled ? `Speed [0–9]: ${(flyControls.movementSpeed*60/100/h).toFixed(0)} Mpc/s<br>` : '';
+  const flyMode = isComputer ? `Fly mode [M]: ${!orbitControls.enabled ? 'enabled' : 'disabled'}<br>` : ''
 
   infoElement.innerHTML = `
       ${speedInfo}
-      Coordinates: (${camera.position.x.toFixed(0)}, ${camera.position.y.toFixed(0)}, ${camera.position.z.toFixed(0)}) Mpc/h<br>
-      Orientation: (${camera.rotation.x.toFixed(2)}, ${camera.rotation.y.toFixed(2)}, ${camera.rotation.z.toFixed(2)}) rad<br>
-      Colors ${isComputer ? '[C]' : '[tap]'}: ${showColors ? 'enabled' : 'disabled'}<br>
+      ${flyMode}
+      Coordinates: (${(camera.position.x/h).toFixed(0)}, ${(camera.position.y/h).toFixed(0)}, ${(camera.position.z/h).toFixed(0)}) Mpc<br>
+      Orientation: (${camera.rotation.x.toFixed(2)}, ${camera.rotation.y.toFixed(2)}, ${camera.rotation.z.toFixed(2)})<br>
+      Colors ${isComputer ? '[C]' : '[tap here]'}: ${showColors ? 'enabled' : 'disabled'}<br>
       ${isComputer? 'Hide panel [P]<br>' : ''}
   `;
 
   renderer.render(scene, camera);
-}
-
-function handleKeyboard() {
-    // Movement
-    if (keyState['KeyW']) velocity.z = moveSpeed;
-    if (keyState['KeyS']) velocity.z = -moveSpeed;
-    if (keyState['KeyA']) velocity.x = moveSpeed;
-    if (keyState['KeyD']) velocity.x = -moveSpeed;
-    
-    // Rotation
-    if (keyState['ArrowUp']) rotationVector.x = rotateSpeed;
-    if (keyState['ArrowDown']) rotationVector.x = -rotateSpeed;
-    if (keyState['ArrowLeft']) rotationVector.y = rotateSpeed;
-    if (keyState['ArrowRight']) rotationVector.y = -rotateSpeed;
-}
-
-function moveCamera() {
-    camera.position.add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(velocity.z));
-    camera.position.x += velocity.x;
-    camera.rotation.x += rotationVector.x;
-    camera.rotation.y += rotationVector.y;
-
-    // Reset velocity and rotation for next frame
-    velocity.set(0, 0, 0);
-    rotationVector.set(0, 0, 0);
 }
 
 init();
