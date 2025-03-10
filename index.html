@@ -9,7 +9,61 @@
 </head>
 <body>
 <div id="loading" class="noselect">Loading galaxies...</div>
-<div id="info" class="noselect">Camera Info</div>
+<div id="info-panel" class="info-panel"></div>
+<div id="hud">
+    
+    <div id="speed-gauge" class="gauge">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="Colorful" gradientTransform="rotate(45)">
+                    <stop offset="10%" stop-color="#ff6dad" />
+                    <stop offset="90%" stop-color="#4b9dff" />
+                </linearGradient>
+            </defs>
+            <circle class="gauge-circle-background" cx="50" cy="50" r="40" />
+            <circle class="gauge-circle-white" cx="50" cy="50" r="40" />
+            <circle class="gauge-circle-colorful" cx="50" cy="50" r="40" />
+        </svg>
+        <div class="gauge-speed">10</div>
+        <div class="gauge-speed-unit">Mpc/s</div>
+    </div>
+    <div id="xy-map" class="map">
+        <div class="container">
+            <img src="images/xy_plane.svg" width="150" height="150" alt=""/>
+            <img src="images/xy_plane.png" width="150" height="150" alt=""/>
+            <div class='map-pointer'></div>
+            <svg class="map-cross-line" viewBox="0 0 100 100">
+                <line x1="50" y1="0" x2="50" y2="100"/>
+                <line x1="0" y1="50" x2="100" y2="50"/>
+            </svg>
+        </div>
+        <div class="map-direction"><div class="map-arrow"></div></div>
+        <div class="map-text">(0, 0, 0)</div>
+    </div>
+    <div id="chart" class="chart map">
+        <div class="container">
+            <!-- <img src="data/rdz_plane.svg" width="150" height="150" alt=""/> -->
+            <img src="images/rdz_plane.png" width="360" height="150" alt=""/>
+            <div class='map-pointer'></div>
+            <svg class="map-cross-line" viewBox="0 0 360 130" width="360" height="150">
+                <line x1="180" y1="0" x2="180" y2="130"/>
+                <line x1="0" y1="65" x2="360" y2="65"/>
+            </svg>
+        </div>
+        <div class="map-text">(0, 0, 0)</div>
+    </div>
+    <div id='hud-info' class="hud-info">
+        <div class="redshift">
+            <span>Z</span>
+            <span>0.45</span>
+        </div>
+        <div class="comoving-distance">
+            <img src="images/earth.svg" width="30" height="30">
+            <span>2000</span>
+            <span>Mpc</span>
+        </div>
+    </div>
+</div>
   <script type="importmap">
       {
           "imports": {
@@ -22,6 +76,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.0.4/dist/pako.min.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/hud.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

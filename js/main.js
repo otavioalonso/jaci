@@ -18,8 +18,10 @@ const isComputer = !window.mobileCheck();
 let scene, camera, controls, renderer;
 let flyControls, orbitControls;
 let galaxyPoints;
-let infoElement, loadingElement;
-let showColors, showPanel;
+let hudElement, infoElement, loadingElement;
+let showColors, showPanel, keysDown;
+let speedGauge, xyMap, skyChart, hudInfo;
+let tabulatedRedshift;
 
 // Initialize the three.js scene
 function init() {
@@ -27,7 +29,18 @@ function init() {
 
   camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100000);
 
-  camera.position.z = 500;
+  // camera.position.x = -2200,
+  // camera.position.y = -300,
+  // camera.position.z = 800;
+
+  camera.position.x = -6794*h,
+  camera.position.y = -697*h,
+  camera.position.z = -420*h;
+
+  // camera.rotation.x = -0.76,
+  // camera.rotation.y = 1.14,
+  // camera.rotation.z = 2.06;
+  
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -43,54 +56,88 @@ function init() {
 
   setSpeed(1);
   
-  infoElement = document.getElementById('info');
+  hudElement = document.getElementById('hud');
+  infoElement = document.getElementById('info-panel');
   loadingElement = document.getElementById('loading');
+
+  speedGauge = new GaugeComponent('speed-gauge');
+  xyMap = new MapComponent('xy-map');
+  skyChart = new ChartComponent('chart');
+  hudInfo = new HUDInfoComponent('hud-info')
 
   window.addEventListener("resize", onWindowResize, false);
 
   showColors = false;
   showPanel = true;
 
+  loadTabularRedshift();
   loadGalaxyData();
 
   if(!isComputer) infoElement.addEventListener('click', toggleColor);
 
-  window.addEventListener('keydown', (event) => {
-      if (event.code === 'KeyC') toggleColor();
-      if (event.code === 'KeyP') togglePanel();
-      if (event.code === 'KeyM') toggleControls();
+  keysDown = {};
 
-      if(/^[0-9]$/i.test(event.key)) {
-        setSpeed(parseInt(event.key));
-      }
+  window.addEventListener('keydown', (event) => {
+    keysDown[event.code] = true;
+    handleKeyboard();
+
+    if(/^[0-9]$/i.test(event.key)) {
+      setSpeed(parseInt(event.key));
+    }
   });
+  window.addEventListener('keyup', (event) => {
+    keysDown[event.code] = false;
+    handleKeyboard();
+  });
+}
+
+function handleKeyboard() {
+  if (keysDown['KeyC']) toggleColor();
+  if (keysDown['KeyP']) togglePanel();
+  if (keysDown['KeyM']) toggleControls();
+}
+
+function updateSpeedometer() {
+  const speed = flyControls.forwardSpeed*6/10000;
+  speedGauge.setFracWhite(speed);  
+  speedGauge.setFracColored(keysDown['KeyW'] ? speed : 0);
+  speedGauge.setNumber((flyControls.forwardSpeed*60/100).toFixed(0));
+    
 }
 
 function toggleControls() {
   if (controls === orbitControls) {
     controls = flyControls;
     orbitControls.enabled = false;
+    speedGauge.show();
+    xyMap.show();
+    skyChart.show();
+    hudInfo.show();
+
   } else {
     controls = orbitControls;
     orbitControls.enabled = true;
-    // flyControls.reset();
+    speedGauge.hide();
+    xyMap.hide();
+    skyChart.hide();
+    hudInfo.hide();
   }
 }
 
 function setSpeed(speed) {
   if(speed === 0) speed = 10;
-  flyControls.movementSpeed = speed**2 / 3 * 100/6*h;
-  flyControls.forwardSpeed = speed**2 * 100/6*h;
+  flyControls.movementSpeed = speed**2 / 3 * 100/6;
+  flyControls.forwardSpeed = speed**2 * 100/6;
 }
 
 function showLoading() {
     loadingElement.style.display = 'block';
-    infoElement.style.display = 'none';
+    hudElement.style.display = 'none';
 }
 
 function hideLoading() {
     loadingElement.style.display = 'none';
-    infoElement.style.display = 'block';
+    hudElement.style.display = 'block';
 }
 
 function togglePanel() {
@@ -144,17 +191,31 @@ function createCircleTexture() {
     return texture;
 }
 
+async function loadTabularRedshift() {
+  try {
+    showLoading();
+    const response = await fetch("data/comoving_distances.json");
+    if (!response.ok) {
+      throw new Error("Network response was not OK");
+    }
+    tabulatedRedshift = await response.json();
+  } catch (error) {
+    console.error("Error loading redshift data:", error);
+  }
+}
+
 async function loadGalaxyData() {
   try {
     showLoading();
-    const response = await fetch("galaxies.json.gz");
+    const response = await fetch("data/galaxies.json.gz");
     if (!response.ok) {
       throw new Error("Network response was not OK");
     }
 
     const compressedData = await response.arrayBuffer();
     const decompressedData = pako.ungzip(new Uint8Array(compressedData), { to: 'string' });
-    const galaxies = JSON.parse(decompressedData);;
+    const galaxies = JSON.parse(decompressedData);
+    // const galaxies = await response.json();
 
     const numGalaxies = galaxies.length;
     // Float32Array is efficient for many points
@@ -162,9 +223,9 @@ async function loadGalaxyData() {
     const colors = new Float32Array(numGalaxies * 3);
 
     for (let i = 0; i < numGalaxies; i++) {
-      positions[i * 3]     = galaxies[i][0];
-      positions[i * 3 + 1] = galaxies[i][1];
-      positions[i * 3 + 2] = galaxies[i][2];
+      positions[i * 3]     = galaxies[i][0]*h;
+      positions[i * 3 + 1] = galaxies[i][1]*h;
+      positions[i * 3 + 2] = galaxies[i][2]*h;
 
       colors[i * 3]     = color_code[galaxies[i][3]][0];
       colors[i * 3 + 1] = color_code[galaxies[i][3]][1];
@@ -197,13 +258,13 @@ async function loadGalaxyData() {
   });
 
     galaxyPoints = new THREE.Points(geometry, material);
-    galaxyPoints.rotation.x = 3;
-    galaxyPoints.rotation.y = 3;
-    galaxyPoints.rotation.z = 0;
+    // galaxyPoints.rotation.x = 3;
+    // galaxyPoints.rotation.y = 3;
+    // galaxyPoints.rotation.z = 0;
 
-    galaxyPoints.position.x = -2200,
-    galaxyPoints.position.y = -300,
-    galaxyPoints.position.z = 300;
+    // galaxyPoints.position.x = -2200,
+    // galaxyPoints.position.y = -300,
+    // galaxyPoints.position.z = 300;
 
     scene.add(galaxyPoints);
     hideLoading();
@@ -213,27 +274,73 @@ async function loadGalaxyData() {
   }
 }
 
+function updateMaps() {
+  const x = camera.position.x;
+  const y = camera.position.y;
+  const z = camera.position.z;
+
+  xyMap.setXY(x, y, z);
+
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
+
+  // Project direction onto the XY plane
+  direction.z = 0;
+  direction.normalize();
+  xyMap.setDirection(THREE.MathUtils.radToDeg(Math.atan2(-direction.y, direction.x))+90);
+
+  const r = Math.sqrt(x*x + y*y + z*z);
+  const dec = Math.asin(z/r);
+  const ra = Math.atan2(y,x/Math.cos(Math.PI/6));
+
+  skyChart.setCoords((THREE.MathUtils.radToDeg(ra) + 270) % 360, THREE.MathUtils.radToDeg(dec));
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
   // Rotate the entire system slowly for a 3D effect
-  if (galaxyPoints) {
-    galaxyPoints.rotation.x += 0.0002;
-  }
+  // if (galaxyPoints) {
+  //   galaxyPoints.rotation.x += 0.0002;
+  // }
   controls.update(0.01);
+  updateSpeedometer();
+  updateMaps();
+
   // orbitControls.update();
   // moveCamera();
 
-  const speedInfo = isComputer && !orbitControls.enabled ? `Warp speed [0–9]: ${(flyControls.forwardSpeed*60/100/h).toFixed(0)} Mpc/s<br>` : '';
+  
+
+  let redshift;
+
+  const x = camera.position.x;
+  const y = camera.position.y;
+  const z = camera.position.z;
+
+  const distance = Math.sqrt(x*x+y*y+z*z)/h;
+
+  if(tabulatedRedshift) {
+
+    redshift = interpolate(tabulatedRedshift, distance);
+    redshift = redshift == -1 ? '> 6' : redshift.toFixed(2);
+  } else {
+    redshift = '';
+  }
+
+  hudInfo.setData(redshift, (distance).toFixed(0));
+
   const flyMode = isComputer ? `Fly mode [M]: ${!orbitControls.enabled ? 'enabled' : 'disabled'}<br>` : ''
 
   infoElement.innerHTML = `
-      ${speedInfo}
+      ${isComputer && !orbitControls.enabled ? 'Move [WASDRF]<br>' : ''}
+      ${isComputer && !orbitControls.enabled ? 'Rotate [▲ ▼ ◀ ▼ QE]<br>' : ''}
+      ${isComputer && !orbitControls.enabled ? 'Change speed [0–9]<br>' : ''}
       ${flyMode}
-      Coordinates: (${(camera.position.x/h).toFixed(0)}, ${(camera.position.y/h).toFixed(0)}, ${(camera.position.z/h).toFixed(0)}) Mpc<br>
-      Orientation: (${camera.rotation.x.toFixed(2)}, ${camera.rotation.y.toFixed(2)}, ${camera.rotation.z.toFixed(2)})<br>
       Colors ${isComputer ? '[C]' : '[tap here]'}: ${showColors ? 'enabled' : 'disabled'}<br>
-      ${isComputer? 'Hide panel [P]<br>' : ''}
+      ${isComputer ? 'Hide panel [P]<br>' : ''}
+      ${!isComputer ? 'Fly mode: computer-only<br>' : ''}
+      
   `;
 
   renderer.render(scene, camera);

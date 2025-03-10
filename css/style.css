@@ -1,14 +1,23 @@
-body { margin: 0; overflow: hidden; }
-canvas { display: block; }
-#info {
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed&display=swap');
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: black;
+}
+
+canvas {
+  display: block;
+}
+
+.info-panel {
     position: absolute;
     bottom: 10px;
     right: 10px;
     color: white;
     background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px;
+    padding: 10px;
     font-family: monospace;
-    display: none; /* Initially hidden */
 }
 
 .noselect {
@@ -30,4 +39,243 @@ canvas { display: block; }
     font-family: Arial, sans-serif;
     padding: 20px;
     display: none; /* Initially hidden */
+}
+
+#hud {
+    /* display: none; Initially hidden */
+    font-family: "Saira Condensed", sans-serif;
+}
+
+
+.gauge {
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+  color: azure;
+  text-align: center;
+  width: 100px;
+  height: 100px;
+}
+
+.gauge circle {
+  stroke-width: 6px;
+  stroke-dasharray: 400;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.gauge svg {
+  rotate: 135.7deg;
+}
+
+.gauge circle.gauge-circle-colorful {
+  stroke: url(#Colorful);
+  transition: stroke-dashoffset 0.3s ease-out;
+  
+}
+
+.gauge circle.gauge-circle-white {
+  stroke: azure;
+  transition: stroke-dashoffset 0.1s linear;
+  filter: drop-shadow( 0px 0px 4px rgb(0, 0, 0));
+  --webkit-filter: drop-shadow( 0px 0px 4px rgb(0, 0, 0));
+}
+
+.gauge circle.gauge-circle-background {
+  stroke: azure;
+  opacity: 0.3;
+  stroke-dashoffset: 211.75px;
+  /* fill: url(#Colorful) */
+}
+
+.gauge .gauge-speed {
+  position: absolute;
+  top: 19%;
+  left: 25%;
+  width: 50%;
+  font-size: 22pt;
+}
+
+.gauge .gauge-speed-unit {
+  position: absolute;
+  top: 49%;
+  left: 25%;
+  width: 50%;
+  font-size: 13pt;
+}
+
+#xy-map {
+  top: 30px;
+  left: 30px;
+}
+
+.map {
+  position: absolute;
+  
+}
+
+.map > .container {
+  position: absolute;
+  /* top: 0;
+  left: 0; */
+  height: 150px;
+  width: 150px;
+  pointer-events: none;
+  z-index: 2;
+  background-color: rgba(24, 24, 24 ,0.9);
+  border: 1.5px solid white;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.map img:first-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.6;
+}
+
+.map img:nth-child(2) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  z-index: 2;
+}
+
+.map .map-pointer {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  z-index: 5;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.map .map-cross-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  opacity: 0.5;
+
+}
+
+.map line {
+  stroke: azure;
+  stroke-width: 1.5;
+  stroke-dasharray: 4;
+}
+
+.map .map-direction {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 150px;
+  height: 150px;
+}
+
+.map .map-arrow {
+  position: absolute;
+  left: 72px;
+  top: -18px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 12px solid azure;
+}
+
+#xy-map .map-text {
+  position: absolute;
+  top: 170px;
+  left: 0px;
+  color: azure;
+  width: 154px;
+  text-align: center;
+}
+
+#chart {
+  top: 30px;
+  right: 30px;
+  width: 360px;
+  height: 150px;
+  border-radius: 0%;
+}
+
+#chart > .container {
+  border-radius: 0%;
+  width: 360px;
+  height: 150px;
+}
+
+#chart .map-text {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: azure;
+  width: 360px;
+  text-align: right;
+  z-index: 5;
+}
+
+
+#chart line {
+  stroke: azure;
+  stroke-width: 2;
+  stroke-dasharray: 6;
+}
+
+.hud-info {
+  position: absolute;
+  top: 200px;
+  right: 30px;
+  text-align: right;
+  color: azure;
+  font-size: 14pt;
+  /* height: 200px; */
+  width: 50px;
+}
+
+.hud-info .redshift {
+  width: 40px;
+  text-align: center;
+  border: 2px solid azure;
+  border-radius: 5%;
+  /* float: right; */
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.hud-info .redshift span:first-child {
+  font-size: 16pt;
+  display: inline-block;
+  width: 100%;
+}
+
+.hud-info .comoving-distance {
+  width: 40px;
+  text-align: center;
+  border: 2px solid azure;
+  border-radius: 5%;
+  /* float: right; */
+  margin-bottom: 30px;
+  padding: 5px;
+  line-height: 1;
+}
+
+
+.hud-info .comoving-distance span:nth-child(2) {
+  font-size: 14pt;
+  margin-top: 4px;
+  display: inline-block;
+  width: 100%;
+}
+
+
+.hud-info .comoving-distance span:nth-child(3) {
+  font-size: 12pt;
+  display: inline-block;
+  width: 100%;
 }
