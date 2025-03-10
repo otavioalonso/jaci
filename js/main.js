@@ -142,6 +142,7 @@ function showLoading() {
 function hideLoading() {
     loadingElement.style.display = 'none';
     hudElement.style.display = 'block';
+    infoElement.style.display = 'block';
 }
 
 function togglePanel() {

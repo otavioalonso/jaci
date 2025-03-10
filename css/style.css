@@ -18,6 +18,7 @@ canvas {
     background-color: rgba(0, 0, 0, 0.5);
     padding: 10px;
     font-family: monospace;
+    display: none; /* Initially hidden */
 }
 
 .noselect {
@@ -42,7 +43,7 @@ canvas {
 }
 
 #hud {
-    /* display: none; Initially hidden */
+    display: none; /* Initially hidden */
     font-family: "Saira Condensed", sans-serif;
 }
 
