@@ -91,7 +91,8 @@ class FlyControls extends Controls {
 
 		this._moveVector.x = ( - this._moveState.left + this._moveState.right );
 		this._moveVector.y = ( - this._moveState.down + this._moveState.up );
-		this._moveVector.z = ( - forward + this._moveState.back* this.movementSpeed/this.forwardSpeed);
+		this._moveVector.z = ( - forward + this._moveState.back);
+		// this._moveVector.z = ( - forward + this._moveState.back* this.movementSpeed/this.forwardSpeed);
 	}
 
 	_updateRotationVector() {

@@ -33,9 +33,13 @@ function init() {
   // camera.position.y = -300,
   // camera.position.z = 800;
 
-  camera.position.x = -6794*h,
-  camera.position.y = -697*h,
-  camera.position.z = -420*h;
+  // camera.position.x = -6794*h,
+  // camera.position.y = -697*h,
+  // camera.position.z = -420*h;
+
+  camera.position.x = -2686*h,
+  camera.position.y = -1129*h,
+  camera.position.z = -4277*h;
 
   // camera.rotation.x = -0.76,
   // camera.rotation.y = 1.14,
@@ -100,7 +104,7 @@ function handleKeyboard() {
 function updateSpeedometer() {
   const speed = flyControls.forwardSpeed*6/10000;
   speedGauge.setFracWhite(speed);  
-  speedGauge.setFracColored(keysDown['KeyW'] ? speed : 0);
+  speedGauge.setFracColored(keysDown['KeyW'] || keysDown['KeyS'] ? speed : 0);
   speedGauge.setNumber((flyControls.forwardSpeed*60/100).toFixed(0));
     
 }
@@ -338,7 +342,7 @@ function animate() {
       ${isComputer && !orbitControls.enabled ? 'Change speed [0–9]<br>' : ''}
       ${flyMode}
       Colors ${isComputer ? '[C]' : '[tap here]'}: ${showColors ? 'enabled' : 'disabled'}<br>
-      ${isComputer ? 'Hide panel [P]<br>' : ''}
+      ${isComputer ? 'Hide this panel [P]<br>' : ''}
       ${!isComputer ? 'Fly mode: computer-only<br>' : ''}
       
   `;
