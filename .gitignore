@@ -1,4 +1,5 @@
+*/.ipynb_checkpoints/*
 .ipynb_checkpoints/*
-*.json
 *.json.gz
+galaxies.json
 *.fits
