@@ -22,6 +22,7 @@ let hudElement, infoElement, loadingElement;
 let showColors, showPanel, keysDown;
 let speedGauge, xyMap, skyChart, hudInfo;
 let tabulatedRedshift;
+let interacted = 0;
 
 // Initialize the three.js scene
 function init() {
@@ -84,15 +85,20 @@ function init() {
   window.addEventListener('keydown', (event) => {
     keysDown[event.code] = true;
     handleKeyboard();
+    interacted += 1;
 
     if(/^[0-9]$/i.test(event.key)) {
       setSpeed(parseInt(event.key));
     }
   });
+
   window.addEventListener('keyup', (event) => {
     keysDown[event.code] = false;
+    interacted -= 1;
     handleKeyboard();
   });
+
+  updateHUD();
 }
 
 function handleKeyboard() {
@@ -308,14 +314,20 @@ function animate() {
   // if (galaxyPoints) {
   //   galaxyPoints.rotation.x += 0.0002;
   // }
-  controls.update(0.01);
+
+  if(controls){
+    controls.update(0.01);
+  }
+
+  if(interacted) {
+    updateHUD();
+  }
+  renderer.render(scene, camera);
+}
+
+function updateHUD() {
   updateSpeedometer();
   updateMaps();
-
-  // orbitControls.update();
-  // moveCamera();
-
-  
 
   let redshift;
 
@@ -336,19 +348,16 @@ function animate() {
   hudInfo.setData(redshift, (distance).toFixed(0));
 
   const flyMode = isComputer ? `Fly mode [M]: ${!orbitControls.enabled ? 'enabled' : 'disabled'}<br>` : ''
-
   infoElement.innerHTML = `
-      ${isComputer && !orbitControls.enabled ? 'Move [WASDRF]<br>' : ''}
-      ${isComputer && !orbitControls.enabled ? 'Rotate [▲ ▼ ◀ ▼ QE]<br>' : ''}
-      ${isComputer && !orbitControls.enabled ? 'Change speed [0–9]<br>' : ''}
-      ${flyMode}
-      Colors ${isComputer ? '[C]' : '[tap here]'}: ${showColors ? 'enabled' : 'disabled'}<br>
-      ${isComputer ? 'Hide this panel [P]<br>' : ''}
-      ${!isComputer ? 'Fly mode: computer-only<br>' : ''}
-      
-  `;
-
-  renderer.render(scene, camera);
+  ${isComputer && !orbitControls.enabled ? 'Move [WASDRF]<br>' : ''}
+  ${isComputer && !orbitControls.enabled ? 'Rotate [▲ ▼ ◀ ▼ QE]<br>' : ''}
+  ${isComputer && !orbitControls.enabled ? 'Change speed [0–9]<br>' : ''}
+  ${flyMode}
+  Colors ${isComputer ? '[C]' : '[tap here]'}: ${showColors ? 'enabled' : 'disabled'}<br>
+  ${isComputer ? 'Hide this panel [P]<br>' : ''}
+  ${!isComputer ? 'Fly mode: computer-only<br>' : ''}
+  
+`;
 }
 
 init();
