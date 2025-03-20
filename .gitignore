@@ -3,3 +3,7 @@
 *.json.gz
 galaxies.json
 *.fits
+.firebase/*
+.firebaserc
+firebase.json
+
